@@ -1,0 +1,16 @@
+{
+  "id": "dsh-external/dsh-my-homepage",
+  "version": "0.1.0",
+  "main": "./index.js",
+  "description": "把多个信息源聚合成一个小组件式个人主页：每个源声明自己的卡片形态，加一个源就多一张卡",
+  "engines": {
+    "dsh": ">=0.2.0-rc.1"
+  },
+  "contributes": {
+    "tools": [],
+    "skills": []
+  },
+  "client": {
+    "main": "./client.js"
+  }
+}

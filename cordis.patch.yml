@@ -1,0 +1,5 @@
+- insert:
+    - id: my-homepage
+      name: dsh-my-homepage
+      config:
+        mode: selected

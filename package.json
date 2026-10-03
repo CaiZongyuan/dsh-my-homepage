@@ -1,0 +1,66 @@
+{
+  "name": "dsh-my-homepage",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "MIT",
+  "author": "CaiZongyuan",
+  "description": "DSH 个人工作台：把多个信息源聚合成一个小组件式主页，每个源有自己的卡片形态 | A widget-style personal homepage for DeepSeek Harness",
+  "homepage": "https://github.com/CaiZongyuan/dsh-my-homepage#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CaiZongyuan/dsh-my-homepage.git"
+  },
+  "bugs": {
+    "url": "https://github.com/CaiZongyuan/dsh-my-homepage/issues"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "dsh-plugin",
+    "homepage",
+    "personal-homepage",
+    "workspace",
+    "dashboard",
+    "widget",
+    "rss",
+    "aihot"
+  ],
+  "icon": "./icon.svg",
+  "engines": {
+    "node": ">=20",
+    "dsh": ">=0.2.0-rc.1"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "feed.js",
+    "cordis.patch.yml",
+    "dsh.plugin.json",
+    "icon.svg",
+    "README.md",
+    "README_EN.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "docs"
+  ],
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true
+    }
+  },
+  "scripts": {
+    "check": "node --check index.js && node --check client.js && node --check feed.js",
+    "test": "node dev/selftest.mjs",
+    "test:offline": "node dev/selftest.mjs --offline"
+  }
+}

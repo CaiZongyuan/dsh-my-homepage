@@ -1,0 +1,15 @@
+# Dependencies (a git install of this package needs none, but local tooling may add them)
+node_modules/
+pnpm-lock.yaml
+package-lock.json
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
+
+# Local scratch
+tmp/
+*.local.*
