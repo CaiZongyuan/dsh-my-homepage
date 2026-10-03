@@ -31,9 +31,12 @@ reader. There is **no build step and no dependency**.
    the importing file. This is why the storage domain uses a `{ parse }` stub instead of
    zod: the domain's only call on `valueSchema` is `.parse()`.
 2. **A Host change needs a DSH restart to take effect.** The Loader caches a Host module per
-   specifier; `set_bundle` disable/enable re-runs `apply()` from the cached module body.
-   The Client half is different: it hot-reloads on file save (revisions come from mtime and
-   size). So: batch Host edits, iterate visually on the client.
+   specifier, and Node's ESM cache is keyed by the **resolved file URL** — so re-installing
+   the bundle, even under a *different package name*, re-runs `apply()` from the same cached
+   module body. Verified: after renaming the package and re-installing, `/workbench/meta`
+   still reported the previous generation's descriptors. The Client half is different: it
+   hot-reloads on file save (revisions come from mtime and size). So: batch Host edits, and
+   iterate visually on the client.
 3. **Storage keys must be path-safe.** The domain's `per-record` layout requires
    `/^[a-zA-Z0-9_-]+$/`, so a colon cannot separate source from id (`aihot:xxx` is
    rejected). `itemKey()` sanitises; the `read` table shares the constraint because its keys
