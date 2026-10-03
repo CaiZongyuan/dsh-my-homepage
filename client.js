@@ -28,9 +28,9 @@ window.__ModuleLoader__.load({
     const API = '/workbench'
 
     /** Grid unit. Card body height for n rows is n*ROW_UNIT + (n-1)*GAP - CHROME. */
-    const ROW_UNIT = 112
-    const GAP = 12
-    const CHROME = 64 // card padding + header + header margin
+    const ROW_UNIT = 130
+    const GAP = 14
+    const CHROME = 74 // card padding + header + header margin
 
     // ---- theme tokens ------------------------------------------------------
 
@@ -325,8 +325,8 @@ window.__ModuleLoader__.load({
             background: props.plain ? 'transparent' : C.layer2,
             border: props.plain ? `1px solid ${C.border1}` : '1px solid transparent',
             color: C.text2,
-            fontSize: 11,
-            lineHeight: '16px',
+            fontSize: 12.5,
+            lineHeight: '18px',
             whiteSpace: 'nowrap',
           },
         },
@@ -347,7 +347,7 @@ window.__ModuleLoader__.load({
             flex: '0 0 auto', minWidth: 23, textAlign: 'center',
             padding: '0 4px', borderRadius: 6,
             fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-            fontSize: 10.5, lineHeight: '16px',
+            fontSize: 12, lineHeight: '18px',
             color: strong ? C.brand : C.text2,
             background: strong ? C.layer2 : 'transparent',
             border: `1px solid ${strong ? C.brand : C.border1}`,
@@ -369,7 +369,7 @@ window.__ModuleLoader__.load({
           style: {
             cursor: props.disabled ? 'default' : 'pointer',
             padding: '4px 11px', borderRadius: 999,
-            fontSize: 11.5, lineHeight: '17px', font: 'inherit', flex: '0 0 auto',
+            fontSize: 13, lineHeight: '19px', font: 'inherit', flex: '0 0 auto',
             border: primary ? '1px solid transparent' : `1px solid ${C.border1}`,
             background: primary ? C.brand : C.layer1,
             color: primary ? C.base : C.text2,
@@ -384,7 +384,7 @@ window.__ModuleLoader__.load({
       const parts = (props.parts ?? []).filter((part) => part !== null && part !== undefined && part !== '')
       return h(
         'div',
-        { className: 'wb-clamp1', style: { display: 'flex', alignItems: 'center', gap: 5, fontSize: 10.5, color: C.text2, minWidth: 0, ...(props.style ?? {}) } },
+        { className: 'wb-clamp1', style: { display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: C.text2, minWidth: 0, ...(props.style ?? {}) } },
         parts.map((part, index) =>
           h(
             'span',
@@ -402,7 +402,7 @@ window.__ModuleLoader__.load({
         'div',
         { style: { display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 } },
         h(Monogram, { name: item.origin ?? item.sourceLabel, size: props.size ?? 15 }),
-        h('span', { className: 'wb-clamp1', style: { fontSize: 10.5, color: C.text2, minWidth: 0 } }, item.origin ?? item.sourceLabel),
+        h('span', { className: 'wb-clamp1', style: { fontSize: 12, color: C.text2, minWidth: 0 } }, item.origin ?? item.sourceLabel),
       )
     }
 
@@ -449,7 +449,7 @@ window.__ModuleLoader__.load({
                 padding: '1px 7px', borderRadius: 999,
                 background: showImage ? 'rgba(0,0,0,.42)' : `hsla(${hueOfCategory(item?.category)}, 42%, 24%, .62)`,
                 color: 'rgba(255,255,255,.95)',
-                fontSize: 10, lineHeight: '15px', backdropFilter: 'blur(4px)',
+                fontSize: 11.5, lineHeight: '17px', backdropFilter: 'blur(4px)',
               },
             }, props.badge)
           : null,
@@ -491,9 +491,9 @@ window.__ModuleLoader__.load({
             display: 'flex', flexDirection: 'column',
             background: C.layer1,
             border: `1px solid ${C.border1}`,
-            borderRadius: 16,
+            borderRadius: 18,
             boxShadow: CARD_SHADOW,
-            padding: 14,
+            padding: 16,
             overflow: 'hidden',
           },
         },
@@ -501,7 +501,7 @@ window.__ModuleLoader__.load({
           'header',
           { style: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flex: '0 0 auto', minWidth: 0 } },
           h(Chip, { dot: props.dot, plain: true }, widget.title ?? props.title ?? '组件'),
-          props.hint ? h('span', { className: 'wb-clamp1', style: { fontSize: 10.5, color: C.idle, minWidth: 0 } }, props.hint) : null,
+          props.hint ? h('span', { className: 'wb-clamp1', style: { fontSize: 12, color: C.idle, minWidth: 0 } }, props.hint) : null,
           h('span', { style: { flex: 1, minWidth: 0 } }),
           props.action ?? null,
         ),
@@ -517,7 +517,7 @@ window.__ModuleLoader__.load({
             flex: 1, minHeight: 44,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
             border: `1px dashed ${C.border1}`, borderRadius: 12,
-            color: C.text2, fontSize: 11, lineHeight: '16px', textAlign: 'center', padding: 8,
+            color: C.text2, fontSize: 12.5, lineHeight: '18px', textAlign: 'center', padding: 8,
           },
         },
         props.children,
@@ -562,21 +562,21 @@ window.__ModuleLoader__.load({
               ? h(
                   'span',
                   { style: { display: 'flex', alignItems: 'baseline', gap: 5 } },
-                  h('span', { style: { fontSize: 22, lineHeight: '24px', fontWeight: 700, color: C.text } }, String(Math.round(lead.score))),
-                  h('span', { style: { fontSize: 10.5, color: C.text2 } }, 'AIHOT 评分'),
+                  h('span', { style: { fontSize: 27, lineHeight: '30px', fontWeight: 700, color: C.text } }, String(Math.round(lead.score))),
+                  h('span', { style: { fontSize: 12, color: C.text2 } }, 'AIHOT 评分'),
                 )
               : undefined,
           }),
           h(SourceLine, { item: lead }),
-          h('h3', { className: open ? null : 'wb-clamp2', style: { margin: 0, fontSize: 13, lineHeight: '18px', fontWeight: lead.state?.seen ? 500 : 600, color: C.text } }, lead.title),
+          h('h3', { className: open ? null : 'wb-clamp2', style: { margin: 0, fontSize: 14.5, lineHeight: '20px', fontWeight: lead.state?.seen ? 500 : 600, color: C.text } }, lead.title),
           open && (lead.reason || lead.summary)
-            ? h('p', { className: 'wb-clamp3', style: { margin: 0, fontSize: 11, lineHeight: '16px', color: C.text2 } }, lead.reason || lead.summary)
+            ? h('p', { className: 'wb-clamp3', style: { margin: 0, fontSize: 12.5, lineHeight: '18px', color: C.text2 } }, lead.reason || lead.summary)
             : null,
           open
             ? h(
                 'div',
                 { style: { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' } },
-                lead.url ? h('a', { className: 'wb-link', href: lead.url, target: '_blank', rel: 'noreferrer', onClick: (event) => event.stopPropagation(), style: { color: C.brand, fontSize: 11.5, textDecoration: 'none' } }, '读原文 ↗') : null,
+                lead.url ? h('a', { className: 'wb-link', href: lead.url, target: '_blank', rel: 'noreferrer', onClick: (event) => event.stopPropagation(), style: { color: C.brand, fontSize: 13, textDecoration: 'none' } }, '读原文 ↗') : null,
                 h(Button, { onClick: (event) => { if (event && event.stopPropagation) event.stopPropagation(); props.onState(lead.id, { starred: !lead.state?.starred }) } }, lead.state?.starred ? '★ 已星标' : '☆ 星标'),
               )
             : h(MetaBar, { parts: [relativeTime(lead), lead.score !== null ? `评分 ${lead.score}` : null] }),
@@ -594,7 +594,7 @@ window.__ModuleLoader__.load({
                 style: { cursor: 'pointer', margin: '0 -6px', padding: '5px 6px', borderRadius: 10, display: 'flex', gap: 7, alignItems: 'center' },
               },
               h('span', { style: { flex: '0 0 auto', width: 5, height: 5, borderRadius: 999, background: item.state?.seen ? C.border2 : C.brand } }),
-              h('span', { className: 'wb-clamp1', style: { flex: 1, minWidth: 0, fontSize: 11.5, lineHeight: '16px', color: C.text } }, item.title),
+              h('span', { className: 'wb-clamp1', style: { flex: 1, minWidth: 0, fontSize: 13, lineHeight: '18px', color: C.text } }, item.title),
               h(ScoreBadge, { score: item.score }),
             ),
           ),
@@ -615,10 +615,13 @@ window.__ModuleLoader__.load({
             {
               key: item.id, className: 'wb-row',
               href: item.url || undefined, target: '_blank', rel: 'noreferrer',
-              style: { textDecoration: 'none', padding: 5, margin: -5, borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 5, minWidth: 0 },
+              style: { textDecoration: 'none', padding: 5, margin: -5, borderRadius: 12, display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 },
             },
-            h(Cover, { item, height: 52, radius: 9 }),
-            h('h3', { className: 'wb-clamp2', style: { margin: 0, fontSize: 11.5, lineHeight: '16px', fontWeight: 600, color: C.text } }, item.title),
+            h(Cover, { item, height: 84, radius: 10 }),
+            h('h3', { className: 'wb-clamp2', style: { margin: 0, fontSize: 13, lineHeight: '18px', fontWeight: 600, color: C.text } }, item.title),
+            item.tags?.length
+              ? h('div', { className: 'wb-clamp1', style: { fontSize: 12, lineHeight: '17px', color: C.text2 } }, item.tags.join(' · '))
+              : null,
             h(MetaBar, { parts: [`▲ ${item.metrics?.upvotes ?? 0}`, `${item.metrics?.comments ?? 0} 评论`] }),
           ),
         ),
@@ -640,11 +643,11 @@ window.__ModuleLoader__.load({
               href: item.url || undefined, target: '_blank', rel: 'noreferrer',
               style: { textDecoration: 'none', margin: '0 -6px', padding: 5, borderRadius: 12, display: 'flex', gap: 10, alignItems: 'flex-start', minWidth: 0 },
             },
-            h('div', { style: { flex: '0 0 96px' } }, h(Cover, { item, height: 54, radius: 9, play: true })),
+            h('div', { style: { flex: '0 0 122px' } }, h(Cover, { item, height: 74, radius: 10, play: true })),
             h(
               'div',
               { style: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 } },
-              h('h3', { className: 'wb-clamp2', style: { margin: 0, fontSize: 11.5, lineHeight: '16px', fontWeight: 600, color: C.text } }, item.title),
+              h('h3', { className: 'wb-clamp2', style: { margin: 0, fontSize: 13, lineHeight: '18px', fontWeight: 600, color: C.text } }, item.title),
               h(MetaBar, { parts: [relativeTime(item), item.metrics?.views ? `${item.metrics.views} 观看` : null] }),
             ),
           ),
@@ -654,7 +657,7 @@ window.__ModuleLoader__.load({
 
     /** Products: a logo tile (generated) plus a one-line tagline. */
     function ProductsWidget(props) {
-      const items = props.items.slice(0, 4)
+      const items = props.items.slice(0, 6)
       if (items.length === 0) return emptyWidget(props.source)
       return h(
         'div',
@@ -671,8 +674,8 @@ window.__ModuleLoader__.load({
             h(
               'div',
               { style: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 } },
-              h('div', { className: 'wb-clamp1', style: { fontSize: 11.5, lineHeight: '16px', fontWeight: 600, color: C.text } }, item.title),
-              h('div', { className: 'wb-clamp1', style: { fontSize: 10.5, lineHeight: '15px', color: C.text2 } }, item.summary || 'Product Hunt'),
+              h('div', { className: 'wb-clamp1', style: { fontSize: 13, lineHeight: '18px', fontWeight: 600, color: C.text } }, item.title),
+              h('div', { className: 'wb-clamp1', style: { fontSize: 12, lineHeight: '17px', color: C.text2 } }, item.summary || 'Product Hunt'),
             ),
           ),
         ),
@@ -684,7 +687,7 @@ window.__ModuleLoader__.load({
       const items = props.items
         .filter((item) => item.itemKind === 'rank')
         .sort((a, b) => (a.metrics?.rank ?? 99) - (b.metrics?.rank ?? 99))
-        .slice(0, 4)
+        .slice(0, 6)
       if (items.length === 0) return emptyWidget(props.source)
       return h(
         'div',
@@ -703,7 +706,7 @@ window.__ModuleLoader__.load({
                 style: {
                   flex: '0 0 auto', width: 20, textAlign: 'center',
                   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-                  fontSize: 14, lineHeight: '18px', fontWeight: 700,
+                  fontSize: 16.5, lineHeight: '20px', fontWeight: 700,
                   color: index < 3 ? C.brand : C.idle,
                 },
               },
@@ -712,8 +715,8 @@ window.__ModuleLoader__.load({
             h(
               'div',
               { style: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 } },
-              h('div', { className: 'wb-clamp2', style: { fontSize: 11.5, lineHeight: '16px', color: C.text } }, item.title),
-              h('div', { className: 'wb-clamp1', style: { fontSize: 10, color: C.text2 } }, item.origin),
+              h('div', { className: 'wb-clamp2', style: { fontSize: 13, lineHeight: '18px', color: C.text } }, item.title),
+              h('div', { className: 'wb-clamp1', style: { fontSize: 11.5, color: C.text2 } }, item.origin),
             ),
           ),
         ),
@@ -725,8 +728,8 @@ window.__ModuleLoader__.load({
       return h(
         'div',
         { style: { flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 3 } },
-        h('div', { style: { fontSize: 24, lineHeight: '28px', fontWeight: 600, color: C.text, fontVariantNumeric: 'tabular-nums' } }, String(props.value ?? 0)),
-        h('div', { className: 'wb-clamp1', style: { fontSize: 10.5, color: C.text2 } }, props.label),
+        h('div', { style: { fontSize: 31, lineHeight: '32px', fontWeight: 600, color: C.text, fontVariantNumeric: 'tabular-nums' } }, String(props.value ?? 0)),
+        h('div', { className: 'wb-clamp1', style: { fontSize: 12, color: C.text2 } }, props.label),
       )
     }
 
@@ -739,9 +742,9 @@ window.__ModuleLoader__.load({
       return h(
         'div',
         { style: { flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 3 } },
-        h('div', { style: { fontSize: 24, lineHeight: '28px', fontWeight: 600, color: C.text, fontVariantNumeric: 'tabular-nums' } },
+        h('div', { style: { fontSize: 31, lineHeight: '32px', fontWeight: 600, color: C.text, fontVariantNumeric: 'tabular-nums' } },
           `${pad(now.getHours())}:${pad(now.getMinutes())}`),
-        h('div', { className: 'wb-clamp1', style: { fontSize: 10.5, color: C.text2 } }, `${now.getMonth() + 1} 月 ${now.getDate()} 日 · 周${WEEKDAYS[now.getDay()]}`),
+        h('div', { className: 'wb-clamp1', style: { fontSize: 12, color: C.text2 } }, `${now.getMonth() + 1} 月 ${now.getDate()} 日 · 周${WEEKDAYS[now.getDay()]}`),
       )
     }
 
@@ -763,7 +766,7 @@ window.__ModuleLoader__.load({
                 background: source.lastError ? C.error : source.lastRunAt ? C.ok : C.idle,
               },
             }),
-            h('span', { className: 'wb-clamp1', style: { flex: '0 0 40%', minWidth: 0, fontSize: 10.5, color: C.text2 } }, source.label),
+            h('span', { className: 'wb-clamp1', style: { flex: '0 0 40%', minWidth: 0, fontSize: 12, color: C.text2 } }, source.label),
             h(
               'span',
               { style: { flex: 1, height: 5, borderRadius: 999, background: C.layer2, overflow: 'hidden', minWidth: 0 } },
@@ -777,7 +780,7 @@ window.__ModuleLoader__.load({
                 },
               }),
             ),
-            h('span', { style: { flex: '0 0 auto', fontSize: 10, color: C.idle, fontVariantNumeric: 'tabular-nums' } }, String(source.itemCount ?? 0)),
+            h('span', { style: { flex: '0 0 auto', fontSize: 11.5, color: C.idle, fontVariantNumeric: 'tabular-nums' } }, String(source.itemCount ?? 0)),
           ),
         ),
       )
@@ -845,18 +848,18 @@ window.__ModuleLoader__.load({
             center: h(
               'div',
               { style: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 } },
-              h('div', { style: { fontSize: 38, lineHeight: '42px', fontWeight: 700, color: C.text, fontVariantNumeric: 'tabular-nums' } },
+              h('div', { style: { fontSize: 46, lineHeight: '52px', fontWeight: 700, color: C.text, fontVariantNumeric: 'tabular-nums' } },
                 item.score !== null ? String(Math.round(item.score)) : '—'),
-              h('div', { style: { fontSize: 11, color: C.text2 } }, 'AIHOT 评分'),
+              h('div', { style: { fontSize: 12.5, color: C.text2 } }, 'AIHOT 评分'),
             ),
           })),
         h(
           'div',
           { style: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 7, paddingTop: 2 } },
           h(SourceLine, { item, size: 17 }),
-          h('h2', { className: 'wb-clamp2', style: { margin: 0, fontSize: 18, lineHeight: '25px', fontWeight: 600, color: C.text } }, item.title),
+          h('h2', { className: 'wb-clamp2', style: { margin: 0, fontSize: 22, lineHeight: '30px', fontWeight: 600, color: C.text } }, item.title),
           item.reason || item.summary
-            ? h('p', { className: 'wb-clamp2', style: { margin: 0, fontSize: 12, lineHeight: '18px', color: C.text2 } }, item.reason || item.summary)
+            ? h('p', { className: 'wb-clamp2', style: { margin: 0, fontSize: 13.5, lineHeight: '20px', color: C.text2 } }, item.reason || item.summary)
             : null,
           h('span', { style: { flex: 1 } }),
           h(MetaBar, { parts: [relativeTime(item), item.score !== null ? `评分 ${item.score}` : null] }),
@@ -891,7 +894,7 @@ window.__ModuleLoader__.load({
             onClick: (event) => event.stopPropagation(),
             style: {
               flex: '1 1 auto', maxWidth: 900, minWidth: 0, display: 'flex', flexDirection: 'column',
-              background: C.layer1, border: `1px solid ${C.border1}`, borderRadius: 16,
+              background: C.layer1, border: `1px solid ${C.border1}`, borderRadius: 18,
               boxShadow: CARD_SHADOW_HOVER, overflow: 'hidden',
             },
           },
@@ -899,8 +902,8 @@ window.__ModuleLoader__.load({
             'header',
             { style: { flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: `1px solid ${C.border1}` } },
             h(Monogram, { name: source.widget?.title ?? source.label, size: 20 }),
-            h('span', { style: { fontSize: 13, fontWeight: 600 } }, source.widget?.title ?? source.label),
-            h('span', { style: { fontSize: 11.5, color: C.text2 } }, `${items.length} 条`),
+            h('span', { style: { fontSize: 14.5, fontWeight: 600 } }, source.widget?.title ?? source.label),
+            h('span', { style: { fontSize: 13, color: C.text2 } }, `${items.length} 条`),
             h('span', { style: { flex: 1 } }),
             h(Button, { onClick: onClose }, '关闭 Esc'),
           ),
@@ -924,19 +927,19 @@ window.__ModuleLoader__.load({
                 h(
                   'div',
                   { style: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 } },
-                  h('div', { className: open ? null : 'wb-clamp2', style: { fontSize: 12.5, lineHeight: '18px', fontWeight: item.state?.seen ? 500 : 600, color: C.text } }, item.title),
+                  h('div', { className: open ? null : 'wb-clamp2', style: { fontSize: 14, lineHeight: '20px', fontWeight: item.state?.seen ? 500 : 600, color: C.text } }, item.title),
                   h(MetaBar, { parts: [item.origin, relativeTime(item), item.score !== null ? `评分 ${item.score}` : null] }),
                   open && item.reason
-                    ? h('div', { style: { marginTop: 4, borderLeft: `2px solid ${C.brand}`, padding: '5px 9px', background: C.layer2, borderRadius: '0 6px 6px 0', fontSize: 11.5, lineHeight: '18px', color: C.text } },
+                    ? h('div', { style: { marginTop: 4, borderLeft: `2px solid ${C.brand}`, padding: '5px 9px', background: C.layer2, borderRadius: '0 6px 6px 0', fontSize: 13, lineHeight: '20px', color: C.text } },
                         h('span', { style: { color: C.brand, marginRight: 5 } }, '推荐理由'), item.reason)
                     : null,
-                  open && item.summary ? h('div', { className: 'wb-clamp3', style: { fontSize: 11.5, lineHeight: '18px', color: C.text2 } }, item.summary) : null,
+                  open && item.summary ? h('div', { className: 'wb-clamp3', style: { fontSize: 13, lineHeight: '20px', color: C.text2 } }, item.summary) : null,
                   open
                     ? h(
                         'div',
                         { style: { marginTop: 6, display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' } },
-                        item.url ? h('a', { className: 'wb-link', href: item.url, target: '_blank', rel: 'noreferrer', onClick: (event) => event.stopPropagation(), style: { color: C.brand, fontSize: 11.5, textDecoration: 'none' } }, '原文 ↗') : null,
-                        item.altUrl ? h('a', { className: 'wb-link', href: item.altUrl, target: '_blank', rel: 'noreferrer', onClick: (event) => event.stopPropagation(), style: { color: C.brand, fontSize: 11.5, textDecoration: 'none' } }, '相关 ↗') : null,
+                        item.url ? h('a', { className: 'wb-link', href: item.url, target: '_blank', rel: 'noreferrer', onClick: (event) => event.stopPropagation(), style: { color: C.brand, fontSize: 13, textDecoration: 'none' } }, '原文 ↗') : null,
+                        item.altUrl ? h('a', { className: 'wb-link', href: item.altUrl, target: '_blank', rel: 'noreferrer', onClick: (event) => event.stopPropagation(), style: { color: C.brand, fontSize: 13, textDecoration: 'none' } }, '相关 ↗') : null,
                         h(Button, { onClick: () => onState(item.id, { starred: !item.state?.starred }) }, item.state?.starred ? '★ 已星标' : '☆ 星标'),
                       )
                     : null,
@@ -956,6 +959,29 @@ window.__ModuleLoader__.load({
       const [reader, setReader] = useState(null)
       const [category, setCategory] = useState('all')
       const [query, setQuery] = useState('')
+      const [thumbPass, setThumbPass] = useState(0)
+
+      /**
+       * While items are still missing a cover, ask the Host for a pass (it reads `og:image`
+       * off each linked page, a few per pass) and reload. Bounded, so a page that yields no
+       * image cannot turn this into a loop.
+       */
+      useEffect(() => {
+        if (workbench.dataMode !== 'host' || workbench.status !== 'ready') return undefined
+        if (thumbPass >= 6 || document.visibilityState === 'hidden') return undefined
+        const missing = workbench.items.filter((item) => !item.thumbnail && item.url).length
+        if (missing === 0) return undefined
+        const handle = setTimeout(async () => {
+          try {
+            await postJson(`${API}/thumbnails`, {})
+          } catch {
+            // the pass is best-effort
+          }
+          setThumbPass((count) => count + 1)
+          await workbench.reload()
+        }, 5000)
+        return () => clearTimeout(handle)
+      }, [workbench.items, workbench.status, workbench.dataMode, thumbPass])
 
       const meta = workbench.meta
       const sources = (meta && Array.isArray(meta.sources) && meta.sources.length > 0 ? meta.sources : FALLBACK_SOURCES)
@@ -1006,7 +1032,7 @@ window.__ModuleLoader__.load({
           ? h('button', {
               type: 'button', className: 'wb-btn',
               onClick: () => setReader({ source: { ...source, widget }, items: shown }),
-              style: { cursor: 'pointer', border: 'none', background: 'transparent', color: C.text2, fontSize: 10.5, font: 'inherit', padding: 0, flex: '0 0 auto' },
+              style: { cursor: 'pointer', border: 'none', background: 'transparent', color: C.text2, fontSize: 12, font: 'inherit', padding: 0, flex: '0 0 auto' },
             }, '全部 →')
           : null
 
@@ -1031,7 +1057,7 @@ window.__ModuleLoader__.load({
               key: value, type: 'button', className: 'wb-btn wb-pill',
               onClick: () => setCategory(value),
               style: {
-                cursor: 'pointer', padding: '4px 12px', borderRadius: 999, font: 'inherit', fontSize: 12, lineHeight: '18px',
+                cursor: 'pointer', padding: '4px 12px', borderRadius: 999, font: 'inherit', fontSize: 13.5, lineHeight: '20px',
                 border: `1px solid ${category === value ? 'transparent' : C.border1}`,
                 background: category === value ? C.brand : C.layer1,
                 color: category === value ? C.base : C.text2,
@@ -1046,7 +1072,7 @@ window.__ModuleLoader__.load({
           value: query,
           placeholder: '搜索标题 / 摘要…',
           onChange: (event) => setQuery(event.target.value),
-          style: { width: 190, padding: '5px 12px', borderRadius: 999, border: `1px solid ${C.border1}`, background: C.layer1, color: C.text, fontSize: 12, lineHeight: '18px' },
+          style: { width: 190, padding: '5px 12px', borderRadius: 999, border: `1px solid ${C.border1}`, background: C.layer1, color: C.text, fontSize: 13.5, lineHeight: '20px' },
         }),
       )
 
@@ -1074,14 +1100,14 @@ window.__ModuleLoader__.load({
                   flex: '0 0 auto', width: 46, height: 46, borderRadius: 14,
                   background: C.brand, color: C.base,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 19, fontWeight: 600, boxShadow: CARD_SHADOW,
+                  fontSize: 21, fontWeight: 600, boxShadow: CARD_SHADOW,
                 },
               }, '工'),
               h(
                 'div',
                 { style: { flex: '1 1 240px', minWidth: 0 } },
-                h('div', { style: { fontSize: 20, lineHeight: '28px', fontWeight: 600 } }, greeting(now.getHours())),
-                h('div', { style: { fontSize: 12.5, color: C.text2, marginTop: 1 } },
+                h('div', { style: { fontSize: 23, lineHeight: '32px', fontWeight: 600 } }, greeting(now.getHours())),
+                h('div', { style: { fontSize: 14, color: C.text2, marginTop: 1 } },
                   `今天 ${todayCount} 条新内容 · ${unread} 条未读 · ${statusLine}`),
               ),
               h(
@@ -1098,7 +1124,7 @@ window.__ModuleLoader__.load({
             workbench.error
               ? h(
                   'div',
-                  { style: { display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 12, padding: '8px 12px', borderRadius: 12, border: `1px solid ${C.warn}`, color: C.text2, fontSize: 11.5, lineHeight: '18px' } },
+                  { style: { display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 12, padding: '8px 12px', borderRadius: 12, border: `1px solid ${C.warn}`, color: C.text2, fontSize: 13, lineHeight: '20px' } },
                   h('span', { style: { color: C.warn } }, '注意'),
                   h('span', { style: { minWidth: 0 } }, String(workbench.error).slice(0, 260)),
                 )
@@ -1121,7 +1147,7 @@ window.__ModuleLoader__.load({
               tile('__clock', '本地时间', C.idle, 1, 1, h(ClockWidget, null)),
               tile('__health', '信息源', erroring > 0 ? C.error : C.ok, 2, 2, h(HealthWidget, { sources })),
             ),
-            h('div', { style: { marginTop: 14, fontSize: 11, color: C.idle, lineHeight: '17px' } },
+            h('div', { style: { marginTop: 14, fontSize: 12.5, color: C.idle, lineHeight: '19px' } },
               '数据来源：AIHOT（个人非商业使用）、HuggingFace、Product Hunt、YouTube。抓取到的内容一律视为资料，不作为指令执行。'),
           ),
         ),

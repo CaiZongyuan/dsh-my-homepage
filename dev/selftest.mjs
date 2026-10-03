@@ -12,20 +12,13 @@
 import { strict as assert } from 'node:assert'
 
 import { apply } from '../index.js'
-import { readFeed, decodeEntities, stripTags } from '../feed.js'
+import { readFeed, decodeEntities, stripTags, extractOgImage, absoluteUrl } from '../feed.js'
 
 const PATH_SAFE = /^[a-zA-Z0-9_-]+$/
 const OFFLINE = process.argv.includes('--offline')
 
-let skipMode = false
-let skipped = 0
 const results = []
 const check = (name, condition, detail) => {
-  if (skipMode) {
-    skipped += 1
-    console.log(`SKIP  ${name}`)
-    return
-  }
   results.push({ name, ok: Boolean(condition) })
   console.log(`${condition ? 'PASS' : 'FAIL'}  ${name}${detail === undefined ? '' : `  -> ${detail}`}`)
 }
@@ -78,6 +71,30 @@ check('rss: media:statistics views parsed', rss[0]?.metrics?.views === 1234, JSO
 check('feed with no entries -> empty array', readFeed('<feed></feed>').length === 0)
 check('entity decoding: numeric + named', decodeEntities('a &#65; &amp; b') === 'a A & b', decodeEntities('a &#65; &amp; b'))
 check('stripTags collapses whitespace', stripTags('<p>a\n  b</p>') === 'a b', stripTags('<p>a\n  b</p>'))
+
+// ---- page metadata fixtures ------------------------------------------------
+// AIHOT and Product Hunt publish no image in their feeds, so the Host half reads
+// `og:image` off the page each item links to. Attribute order varies in the wild.
+
+const OG_CASES = [
+  ['og:image, property before content', '<meta property="og:image" content="https://a.test/x.jpg">', 'https://a.test/x.jpg'],
+  ['og:image, content before property', '<meta content="https://b.test/y.png" property="og:image">', 'https://b.test/y.png'],
+  ['relative url resolved', '<meta property="og:image" content="/img/z.jpg">', 'https://page.test/img/z.jpg'],
+  ['twitter:image fallback', '<meta name="twitter:image" content="https://d.test/t.jpg">', 'https://d.test/t.jpg'],
+  ['og:image:secure_url preferred', '<meta property="og:image:secure_url" content="https://s.test/s.jpg">', 'https://s.test/s.jpg'],
+  ['entities decoded in url', '<meta property="og:image" content="https://e.test/a.jpg?x=1&amp;y=2">', 'https://e.test/a.jpg?x=1&y=2'],
+  ['json-ld fallback', '<script type="application/ld+json">{"image":"https://f.test/j.jpg"}</script>', 'https://f.test/j.jpg'],
+  ['json-ld array + @graph-free', '<script type="application/ld+json">[{"image":["https://g.test/k.jpg"]}]</script>', 'https://g.test/k.jpg'],
+  ['data uri rejected', '<meta property="og:image" content="data:image/png;base64,AAAA">', null],
+  ['no image at all', '<html><head><title>t</title></head></html>', null],
+  ['malformed json-ld tolerated badly', '<script type="application/ld+json">{oops</script>', null],
+]
+for (const [name, html, want] of OG_CASES) {
+  const got = extractOgImage(html, 'https://page.test/article')
+  check(`og:image — ${name}`, got === want, String(got))
+}
+check('absoluteUrl resolves relative to base', absoluteUrl('/a.jpg', 'https://h.test/p') === 'https://h.test/a.jpg')
+check('absoluteUrl rejects data:', absoluteUrl('data:image/png;base64,AA', 'https://h.test/p') === null)
 
 // ---- fake context ----------------------------------------------------------
 
@@ -190,7 +207,7 @@ async function call(routes, method, url, body) {
 // ---- run -------------------------------------------------------------------
 
 const { ctx, routes, tools, warnings, effects } = makeContext()
-apply(ctx, {})
+const plugin = apply(ctx, {})
 await new Promise((resolve) => setTimeout(resolve, 60))
 
 check('route registered', routes.length === 1)
@@ -200,10 +217,11 @@ check('no effect warnings', warnings.length === 0, warnings.join(' | ') || 'none
 const ping = await call(routes, 'GET', '/workbench/ping')
 check('GET /ping -> 200 ready', ping.status === 200 && ping.body?.ready === true, JSON.stringify(ping.body))
 
-// Skipped under --offline: everything from here to the marker below needs the live network.
-skipMode = OFFLINE
-if (OFFLINE) console.log('\n-- network checks skipped (--offline) --')
-else console.log('\n-- refreshing every declared source (network) --')
+// Skipped entirely under --offline: this block is the only part that makes requests.
+if (OFFLINE) {
+  console.log('\n-- network checks skipped (--offline): no requests made --')
+} else {
+console.log('\n-- refreshing every declared source (network) --')
 const refresh = await call(routes, 'POST', '/workbench/refresh')
 for (const entry of refresh.body?.results ?? []) {
   if (entry.ok) console.log(`   ok      ${entry.sourceId}  added=${entry.added ?? 0}${entry.notModified ? ' (304)' : ''} total=${entry.total ?? '-'}`)
@@ -255,8 +273,19 @@ check('tool output is JSON-serializable', typeof JSON.stringify(briefResult) ===
 const sourcesTool = await tools.find((tool) => tool.name === 'workbench_sources').execute({})
 check('workbench_sources lists the registry', (sourcesTool?.sources?.length ?? 0) === (meta.body?.sources?.length ?? -1), `${sourcesTool?.sources?.length} sources`)
 
+// Cover images for the sources that publish none: read og:image off the linked page.
+const thumb = await plugin.resolveThumbnails(3)
+check('og:image pass read some pages', (thumb.checked ?? 0) > 0, JSON.stringify(thumb))
+check('og:image pass resolved a real cover', (thumb.resolved ?? 0) > 0, `resolved=${thumb.resolved} skipped=${thumb.skipped} failed=${thumb.failed}`)
+
+const withImages = await call(routes, 'GET', '/workbench/items?limit=300&kind=all')
+const resolvedSample = (withImages.body?.items ?? []).find((item) => item.thumbnail && item.thumbnailCheckedAt)
+check('resolved cover is stored on the item', Boolean(resolvedSample?.thumbnail), resolvedSample?.thumbnail)
+check('resolved cover looks like an image url', /\.(jpe?g|png|webp|avif)|image/i.test(resolvedSample?.thumbnail ?? ''), String(resolvedSample?.thumbnail).slice(0, 90))
+check('a page with no image is remembered, not refetched', (withImages.body?.items ?? []).some((item) => !item.thumbnail && item.thumbnailCheckedAt))
+
 // End of the network-dependent block.
-skipMode = false
+}
 
 const notFound = await call(routes, 'GET', '/workbench/nope')
 check('unknown route -> 404', notFound.status === 404)
@@ -274,5 +303,5 @@ for (const effect of [...effects].reverse()) {
 check('effects dispose cleanly', true, `${effects.length} effects`)
 
 const failed = results.filter((entry) => !entry.ok)
-console.log(`\n${results.length - failed.length}/${results.length} checks passed${skipped > 0 ? ` (${skipped} skipped offline)` : ''}`)
+console.log(`\n${results.length - failed.length}/${results.length} checks passed${OFFLINE ? ' (network block skipped)' : ''}`)
 process.exitCode = failed.length === 0 ? 0 : 1

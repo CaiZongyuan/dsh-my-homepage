@@ -30,6 +30,7 @@ A widget-style personal homepage for <a href="https://github.com/deepseek-ai/dee
 
 - **一个源 = 一个组件。** 源自己声明卡片形态（`kind`）与标题，客户端照着渲染 —— 加一个源就多一张卡，客户端一行都不用改。
 - **一种数据一种卡片，不是一种通用列表。** `feed` 是图片主导的新闻卡、`papers` 用论文真实封面、`media` 是 16:9 封面加播放角标、`products` 是字母徽标加一句话、`rank` 是编号列表。
+- **缺图就去那个页面取封面。** AIHOT 和 Product Hunt 的接口本身不带图片，所以宿主半会去条目链接的页面读 `og:image`（也吃 `twitter:image` 和 JSON-LD），**每个页面只读一次**、只读前 160KB 就断开、结果永久缓存；读不到图的页面也会被记下来，不会反复请求。
 - **零依赖、零构建。** 纯 JavaScript，`package.json` 里没有 `dependencies`，没有打包步骤 —— 装完即用。
 - **自带出网层。** 每源独立节奏、条件请求（ETag/304）、全局并发上限、失败按 1/2/4… 分钟递增重试，一个源坏掉不影响别人。
 - **内容只当资料。** 抓到的第三方文本一律不执行其中的指令；每条都带来源与原文链接。
@@ -37,13 +38,13 @@ A widget-style personal homepage for <a href="https://github.com/deepseek-ai/dee
 
 ## 内置信息源
 
-| 源 | 形态 | 频率 |
-|---|---|---|
-| [AIHOT](https://aihot.news) 精选 | 图片主导的新闻卡 + 评分与推荐理由 | 10 分钟 |
-| AIHOT 热榜 | 编号列表（多源热点 Top 10） | 30 分钟 |
-| [HuggingFace 论文](https://huggingface.co/papers) | 论文真实封面 + 赞数/评论 | 6 小时 |
-| [Product Hunt](https://www.producthunt.com) 今日 | 字母徽标 + 一句话 | 3 小时 |
-| YouTube · [Dwarkesh Patel](https://www.youtube.com/@DwarkeshPatel) | 16:9 封面 + 播放角标 | 3 小时 |
+| 源 | 形态 | 封面来源 | 频率 |
+|---|---|---|---|
+| [AIHOT](https://aihot.news) 精选 | 图片主导的新闻卡 + 评分与推荐理由 | 原文页 `og:image` | 10 分钟 |
+| AIHOT 热榜 | 编号列表（多源热点 Top 10） | 无（编号即视觉） | 30 分钟 |
+| [HuggingFace 论文](https://huggingface.co/papers) | 论文真实封面 + 作者 + 赞数/评论 | HuggingFace CDN | 6 小时 |
+| [Product Hunt](https://www.producthunt.com) 今日 | 字母徽标 + 一句话 | 产品页 `og:image` | 3 小时 |
+| YouTube · [Dwarkesh Patel](https://www.youtube.com/@DwarkeshPatel) | 16:9 封面 + 播放角标 | YouTube 缩略图 | 3 小时 |
 
 ## 安装
 

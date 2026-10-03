@@ -16,7 +16,7 @@ reader. There is **no build step and no dependency**.
 |---|---|
 | `index.js` | Host half: `SOURCES` registry, fetch + store + `/workbench/*` routes + tools |
 | `client.js` | Client half: `main` panel and `sidebar.panellist` icon; the widget grid |
-| `feed.js` | RSS 2.0 / Atom / RDF reader (fixture-tested) |
+| `feed.js` | RSS 2.0 / Atom / RDF reader plus `og:image` extraction (fixture-tested) |
 | `cordis.patch.yml` | The Loader row this bundle inserts |
 | `dsh.plugin.json` | Market manifest |
 | `dev/selftest.mjs` | Runs the real `apply()` against a fake context |
@@ -52,6 +52,16 @@ reader. There is **no build step and no dependency**.
    behaviour, and keep source + original link on every item.
 7. **`Cover` needs `width: 100%`.** Without it, a cover inside a row-flex parent collapses
    to its content width (this produced a 30px-wide vertical strip in the hero).
+8. **A page is read at most once, and only its head.** `resolveThumbnails` fills missing
+   covers from `og:image` on the page an item links to. A page that yielded an image is
+   cached as `thumbnail`; a page that yielded none is remembered by `thumbnailCheckedAt` so
+   it is never requested again; only a *network* failure leaves the item unmarked, so a
+   transient error is retried. The read aborts as soon as `PAGE_PREFIX_BYTES` (160 KB) has
+   arrived, because `og:image` lives in `<head>` — that is a courtesy to the target site.
+   Never turn this into a per-render or unbounded fetch: the item count is the request count.
+9. **Type size is a layout input.** `ROW_UNIT` / `GAP` / `CHROME` and each renderer's item
+   count are budgeted against the type ramp; bumping font sizes without re-measuring pushes
+   a card over its body height. After any type or density change, re-assert `ov=0`.
 
 ## Testing
 

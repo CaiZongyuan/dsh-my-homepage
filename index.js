@@ -13,7 +13,7 @@
  * imports (see ./feed.js) are fine, because they resolve against the importing file.
  */
 
-import { readFeed } from './feed.js'
+import { readFeed, extractOgImage } from './feed.js'
 
 export const name = '@local/dsh-workbench'
 
@@ -25,6 +25,8 @@ const TICK_MS = 30 * 1000
 const FIRST_REFRESH_DELAY_MS = 1200
 const ATTRIBUTION_AIHOT = { name: 'AIHOT', url: 'https://aihot.news' }
 const AIHOT_DIRECT = 'https://aihot.news/api/v1'
+/** Identifies this tool when it reads the pages an item links to. */
+const PAGE_USER_AGENT = 'dsh-my-homepage/0.1 (+personal, non-commercial; og:image only)'
 
 /** Stands in for a zod schema: the storage domain's only call on it is `.parse()`. */
 const LENIENT_SCHEMA = { parse: (value) => value }
@@ -72,6 +74,43 @@ async function getXml(url, previous, signal) {
   if (response.status === 304) return { notModified: true }
   if (!response.ok) throw new Error(`HTTP ${response.status}`)
   return { entries: readFeed(await response.text()), etag: response.headers.get('etag') }
+}
+
+/** How much of a target page is read while looking for `og:image`. */
+const PAGE_PREFIX_BYTES = 160_000
+const PAGE_TIMEOUT_MS = 12000
+
+/**
+ * Read the head of a page and stop.
+ *
+ * Some sources publish no image with their items, so the image has to come from the page
+ * the item links to. `og:image` lives in `<head>`, so the body is abandoned as soon as
+ * enough has been read — a courtesy to the target site, and it keeps the poll cheap.
+ */
+async function fetchPagePrefix(url, signal) {
+  const response = await fetch(url, {
+    headers: { accept: 'text/html,application/xhtml+xml', 'user-agent': PAGE_USER_AGENT },
+    signal,
+    redirect: 'follow',
+  })
+  if (!response.ok) return { status: response.status, html: null }
+  const contentType = response.headers.get('content-type') ?? ''
+  if (!/text\/html|application\/xhtml/i.test(contentType)) return { status: response.status, html: null }
+
+  const reader = response.body?.getReader()
+  if (!reader) return { status: response.status, html: null }
+  const decoder = new TextDecoder()
+  let html = ''
+  try {
+    while (html.length < PAGE_PREFIX_BYTES) {
+      const { done, value } = await reader.read()
+      if (done) break
+      html += decoder.decode(value, { stream: true })
+    }
+  } finally {
+    await reader.cancel().catch(() => {})
+  }
+  return { status: response.status, html }
 }
 
 const SOURCES = [
@@ -231,10 +270,14 @@ export function apply(ctx, config = {}) {
   const cadenceOverride = Number.isFinite(config.refreshMinutes) && config.refreshMinutes > 0
     ? config.refreshMinutes
     : null
+  /** Pages read per pass while filling in missing cover images. */
+  const thumbnailBatch = Number.isFinite(config.thumbnailBatch) && config.thumbnailBatch > 0
+    ? Math.min(config.thumbnailBatch, 20)
+    : 6
 
   let domain = null
   let openError = null
-  const runtime = { running: false, lastTickAt: null, runs: 0 }
+  const runtime = { running: false, lastTickAt: null, runs: 0, thumbnails: { resolved: 0, skipped: 0, failed: 0, running: false } }
 
   const table = (tableName) => {
     if (!domain) throw new Error('workbench store is not open yet')
@@ -272,6 +315,12 @@ export function apply(ctx, config = {}) {
     const tick = async () => {
       try {
         await refreshDue()
+      } catch (error) {
+        runtime.lastError = String(error?.message ?? error)
+      }
+      // Then keep filling in cover images, a few pages per tick.
+      try {
+        await resolveThumbnails(thumbnailBatch)
       } catch (error) {
         runtime.lastError = String(error?.message ?? error)
       }
@@ -471,6 +520,62 @@ export function apply(ctx, config = {}) {
     return total
   }
 
+  /**
+   * Fill in missing cover images from `og:image` on the page an item links to.
+   *
+   * AIHOT and Product Hunt publish no image with their items, so without this those cards
+   * are all generated placeholders. Each page is read once ever: a successful result is
+   * cached as `thumbnail`, and a page with no image is remembered by `thumbnailCheckedAt`
+   * so it is never fetched again. A network failure deliberately does *not* set that
+   * marker, so a transient error is retried on a later pass.
+   */
+  let thumbnailPass = null
+
+  function resolveThumbnails(limit) {
+    if (!domain) return { ok: false, error: openError ? String(openError.message ?? openError) : '存储域正在打开' }
+    if (thumbnailPass) return thumbnailPass
+
+    const items = table('items')
+    const candidates = []
+    for (const [key, value] of items.entries()) {
+      if (value?.thumbnail || value?.thumbnailCheckedAt || !value?.url) continue
+      candidates.push([key, value])
+    }
+    candidates.sort((a, b) => itemTime(b[1]) - itemTime(a[1]))
+    const batch = candidates.slice(0, limit)
+    if (batch.length === 0) return Promise.resolve({ ok: true, candidates: 0, checked: 0, resolved: 0, skipped: 0, failed: 0 })
+
+    runtime.thumbnails.running = true
+    thumbnailPass = (async () => {
+      let resolved = 0
+      let skipped = 0
+      let failed = 0
+      for (const [key, value] of batch) {
+        try {
+          const page = await withFetchSlot(() => fetchPagePrefix(value.url, AbortSignal.timeout(PAGE_TIMEOUT_MS)))
+          const image = page.html ? extractOgImage(page.html, value.url) : null
+          if (image) {
+            await items.put(key, { ...value, thumbnail: image, thumbnailCheckedAt: nowIso() })
+            resolved += 1
+          } else {
+            await items.put(key, { ...value, thumbnailCheckedAt: nowIso() })
+            skipped += 1
+          }
+        } catch {
+          failed += 1
+        }
+      }
+      runtime.thumbnails.resolved += resolved
+      runtime.thumbnails.skipped += skipped
+      runtime.thumbnails.failed += failed
+      return { ok: true, candidates: candidates.length, checked: batch.length, resolved, skipped, failed }
+    })().finally(() => {
+      thumbnailPass = null
+      runtime.thumbnails.running = false
+    })
+    return thumbnailPass
+  }
+
   function readState() {
     const read = new Map()
     for (const [key, value] of table('read').entries()) read.set(key, value)
@@ -657,6 +762,20 @@ export function apply(ctx, config = {}) {
       send(res, 200, { ok: results.every((entry) => entry.ok), results })
       return
     }
+    if (method === 'POST' && route === '/thumbnails') {
+      if (!domain) {
+        send(res, 503, { ok: false, error: meta().error })
+        return
+      }
+      const body = await readJsonBody(req).catch(() => ({}))
+      const limit = Number.isFinite(body?.limit) ? Math.max(1, Math.min(body.limit, 20)) : thumbnailBatch
+      // Reading pages can take a while, so the pass runs in the background and the caller
+      // is told it started; the panel reloads items shortly after.
+      const result = resolveThumbnails(limit)
+      send(res, 200, { ok: true, started: true, limit, pending: Boolean(result) })
+      void result.catch(() => {})
+      return
+    }
     if (method === 'POST' && route === '/state') {
       if (!domain) {
         send(res, 503, { ok: false, error: '存储域尚未就绪' })
@@ -791,5 +910,5 @@ export function apply(ctx, config = {}) {
     }
   })
 
-  return { refreshSource, refreshDue, meta, listItems, sources: SOURCES, sourceIds: SOURCE_IDS }
+  return { refreshSource, refreshDue, resolveThumbnails, meta, listItems, sources: SOURCES, sourceIds: SOURCE_IDS }
 }

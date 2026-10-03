@@ -1,7 +1,8 @@
 /**
- * A deliberately small feed reader: RSS 2.0, Atom, and the RDF shape these sources
- * actually publish. Zero dependencies, and it is a reader rather than a parser — it
- * extracts the handful of fields the workbench stores and ignores everything else.
+ * Deliberately small readers: RSS 2.0 / Atom / RDF for syndication, plus `og:image`
+ * extraction for pages a source links to but publishes no image for (AIHOT and Product
+ * Hunt both do this). Zero dependencies, and readers rather than parsers — they extract
+ * the handful of fields the workbench stores and ignore everything else.
  *
  * Relative imports are safe here even though the bundle is installed as a pnpm link
  * (which breaks bare specifiers); a relative specifier resolves against this file.
@@ -67,4 +68,58 @@ export function readFeed(xml) {
       metrics: views && Number.isFinite(Number(views)) ? { views: Number(views) } : undefined,
     }
   })
+}
+
+// ---- page metadata (for sources that publish no image) ---------------------
+
+/** Resolve a possibly relative URL against the page it came from. */
+export function absoluteUrl(value, base) {
+  if (typeof value !== 'string') return null
+  const trimmed = decodeEntities(value).trim()
+  if (!trimmed || /^data:/i.test(trimmed)) return null
+  try {
+    return new URL(trimmed, base).href
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Pull the social preview image out of an HTML document.
+ *
+ * Attribute order varies in the wild (`property` before or after `content`), so each
+ * pattern matches the whole tag and then reads `content` out of it. JSON-LD is the
+ * fallback because a fair number of news sites only advertise the image there.
+ */
+export function extractOgImage(html, baseUrl) {
+  const text = String(html ?? '')
+  const metaPatterns = [
+    /<meta[^>]+property=["']og:image:secure_url["'][^>]*>/i,
+    /<meta[^>]+property=["']og:image(?::url)?["'][^>]*>/i,
+    /<meta[^>]+name=["']og:image["'][^>]*>/i,
+    /<meta[^>]+name=["']twitter:image(?::src)?["'][^>]*>/i,
+    /<meta[^>]+property=["']twitter:image(?::src)?["'][^>]*>/i,
+  ]
+  for (const pattern of metaPatterns) {
+    const tag = text.match(pattern)
+    if (!tag) continue
+    const content = tag[0].match(/content\s*=\s*["']([^"']+)["']/i)
+    const url = content ? absoluteUrl(content[1], baseUrl) : null
+    if (url) return url
+  }
+
+  const ld = text.match(/<script[^>]+application\/ld\+json[^>]*>([\s\S]*?)<\/script>/i)
+  if (ld) {
+    try {
+      const parsed = JSON.parse(decodeEntities(ld[1]).trim())
+      const node = Array.isArray(parsed) ? parsed[0] : parsed
+      const image = node?.image ?? node?.thumbnailUrl ?? node?.primaryImageOfPage?.url
+      const candidate = typeof image === 'string' ? image : (Array.isArray(image) ? image[0] : image?.url)
+      const url = absoluteUrl(candidate, baseUrl)
+      if (url) return url
+    } catch {
+      // malformed JSON-LD is common; it simply yields no image
+    }
+  }
+  return null
 }
